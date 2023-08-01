@@ -1,3 +1,4 @@
 export enum Environment {
-    PORT = 'PORT'
+    PORT = 'PORT',
+    MONGO_URI = 'MONGO_URI'
 }
