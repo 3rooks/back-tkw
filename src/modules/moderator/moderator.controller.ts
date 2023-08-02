@@ -1,37 +1,62 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Req,
-    UseGuards
-} from '@nestjs/common';
-import { Request } from 'express';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/config/exception';
-import { ROLES } from 'src/constants/roles';
 import { IResponse } from 'src/utils/interfaces/response.interface';
-import { AuthAccess } from './decorators/auth.decorator';
-import { RolesAccess } from './decorators/roles.decorator';
-import { CreateModeratorDto } from './dto/create-moderator.dto';
-import { UpdateModeratorDto } from './dto/update-moderator.dto';
+import { LoginModeratorDto } from './dto/login-moderator.dto';
+import { RegisterModeratorDto } from './dto/register-moderator.dto';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { ModeratorService } from './moderator.service';
 import { Moderator } from './schemas/moderator.schema';
 
-@Controller('moderator')
+@ApiTags('Moderators')
+@Controller('moderators')
 @UseGuards(AuthGuard, RolesGuard)
 export class ModeratorController {
     constructor(private readonly moderatorService: ModeratorService) {}
+    @Post('login')
+    @HttpCode(200)
+    async login(
+        @Body() loginModeratorDto: LoginModeratorDto
+    ): Promise<IResponse<string>> {
+        try {
+            const exist = await this.moderatorService.findByEmail(
+                loginModeratorDto.email
+            );
+
+            if (!exist)
+                throw new Exception({
+                    status: 'UNAUTHORIZED',
+                    message: 'user unauthorized'
+                });
+
+            const isEqual = await this.moderatorService.checkPassword(
+                loginModeratorDto.password,
+                exist.password
+            );
+
+            if (!isEqual)
+                throw new Exception({
+                    status: 'UNAUTHORIZED',
+                    message: 'user unauthorized'
+                });
+
+            const token = await this.moderatorService.generateToken(exist._id);
+
+            return {
+                statusCode: 200,
+                data: token,
+                message: 'token'
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
+    }
 
     @Post('register')
     @HttpCode(201)
-    async create(
-        @Body() createModeratorDto: CreateModeratorDto
+    async register(
+        @Body() createModeratorDto: RegisterModeratorDto
     ): Promise<IResponse<Moderator>> {
         try {
             const exist = await this.moderatorService.findByEmail(
@@ -56,32 +81,5 @@ export class ModeratorController {
         } catch (error) {
             throw Exception.catch(error.message);
         }
-    }
-
-    @Get()
-    @AuthAccess(true)
-    @RolesAccess(ROLES.ADMIN, ROLES.SUPER)
-    findAll(@Req() req: Request) {
-        console.log('ENTRO');
-        console.log('DIIDID', req.id);
-        return this.moderatorService.findAll();
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.moderatorService.findOne(+id);
-    }
-
-    @Patch(':id')
-    update(
-        @Param('id') id: string,
-        @Body() updateModeratorDto: UpdateModeratorDto
-    ) {
-        return this.moderatorService.update(+id, updateModeratorDto);
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.moderatorService.remove(+id);
     }
 }

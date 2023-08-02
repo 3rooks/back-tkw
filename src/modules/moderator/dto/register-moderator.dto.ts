@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
     IsEmail,
     IsEnum,
@@ -7,12 +8,14 @@ import {
 } from 'class-validator';
 import { ROLES } from 'src/constants/roles';
 
-export class CreateModeratorDto {
+export class RegisterModeratorDto {
+    @ApiProperty()
     @IsEmail({}, { message: 'email must comply RFC 5322' })
     @IsString({ message: 'email must be an string' })
     @IsNotEmpty({ message: 'property email should exist' })
     public readonly email: string;
 
+    @ApiProperty()
     @IsStrongPassword(
         {
             minLength: 8,
@@ -29,6 +32,7 @@ export class CreateModeratorDto {
     @IsNotEmpty({ message: 'property password should exist' })
     public readonly password: string;
 
+    @ApiProperty()
     @IsEnum(Object.values(ROLES), { message: 'role must be an valid role' })
     @IsString({ message: 'role must be an string' })
     @IsNotEmpty({ message: 'property role should exist' })

@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BcryptService } from 'src/lib/bcrypt/bcrypt.service';
-import { CreateModeratorDto } from './dto/create-moderator.dto';
-import { UpdateModeratorDto } from './dto/update-moderator.dto';
+import { JwtService } from 'src/lib/jwt/jtw.service';
+import { LoginModeratorDto } from './dto/login-moderator.dto';
+import { RegisterModeratorDto } from './dto/register-moderator.dto';
 import { Moderator, ModeratorDocument } from './schemas/moderator.schema';
 
 @Injectable()
@@ -11,11 +12,16 @@ export class ModeratorService {
     constructor(
         @InjectModel(Moderator.name)
         private readonly moderatorModel: Model<ModeratorDocument>,
-        private readonly bcryptService: BcryptService
+        private readonly bcryptService: BcryptService,
+        private readonly jwtService: JwtService
     ) {}
 
+    generateToken = async (id: string) => {
+        return await this.jwtService.signAsync({ id });
+    };
+
     create = async (
-        createModeratorDto: CreateModeratorDto
+        createModeratorDto: RegisterModeratorDto
     ): Promise<ModeratorDocument> => {
         return await this.moderatorModel.create({
             ...createModeratorDto,
@@ -23,6 +29,10 @@ export class ModeratorService {
                 createModeratorDto.password
             )
         });
+    };
+
+    checkPassword = async (password: string, encripted: string) => {
+        return await this.bcryptService.comparePassword(password, encripted);
     };
 
     findAll() {
@@ -41,7 +51,7 @@ export class ModeratorService {
         return await this.moderatorModel.findById(id).exec();
     };
 
-    update(id: number, updateModeratorDto: UpdateModeratorDto) {
+    update(id: number, updateModeratorDto: LoginModeratorDto) {
         return `This action updates a #${id} moderator`;
     }
 

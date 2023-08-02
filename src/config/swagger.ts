@@ -6,6 +6,7 @@ export const swaggerConfig = (app: INestApplication) => {
         .setTitle('TKW')
         .setDescription('TKW endpoints')
         .setVersion('1.0')
+        .addBearerAuth()
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
