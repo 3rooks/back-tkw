@@ -19,8 +19,7 @@ export class Moderator {
     @Prop({
         type: String,
         required: true,
-        enum: Object.values(ROLES),
-        select: false
+        enum: Object.values(ROLES)
     })
     public readonly role: ROLES;
 

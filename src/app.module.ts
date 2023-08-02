@@ -10,8 +10,7 @@ import { ModeratorModule } from './modules/moderator/moderator.module';
         DatabaseModule,
         ModeratorModule
     ],
-    controllers: [],
-    providers: []
+    controllers: []
 })
 export class AppModule {
     static port: number;

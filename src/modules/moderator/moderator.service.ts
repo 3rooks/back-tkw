@@ -37,6 +37,10 @@ export class ModeratorService {
         return await this.moderatorModel.findOne({ email }).exec();
     };
 
+    findById = async (id: string) => {
+        return await this.moderatorModel.findById(id).exec();
+    };
+
     update(id: number, updateModeratorDto: UpdateModeratorDto) {
         return `This action updates a #${id} moderator`;
     }

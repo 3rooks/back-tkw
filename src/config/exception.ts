@@ -12,6 +12,7 @@ export class Exception extends Error {
     }
 
     public static catch(error: string) {
+        console.log(error);
         const [message, status] = error.split(' :|: ');
         if (message && status)
             throw new HttpException(
