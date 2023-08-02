@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import { ROLES } from 'src/constants/roles';
 import uuid from 'uuid-random';
 
-export type DownloadDocument = HydratedDocument<Moderator>;
+export type ModeratorDocument = HydratedDocument<Moderator>;
 
 @Schema({ _id: false, timestamps: true, versionKey: false })
 export class Moderator {
@@ -16,7 +16,12 @@ export class Moderator {
     @Prop({ type: String, required: true })
     public readonly password: string;
 
-    @Prop({ type: String, required: true, enum: Object.values(ROLES) })
+    @Prop({
+        type: String,
+        required: true,
+        enum: Object.values(ROLES),
+        select: false
+    })
     public readonly role: ROLES;
 
     @Prop({ type: Boolean, default: true })
