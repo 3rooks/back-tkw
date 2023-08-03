@@ -1,3 +1,4 @@
+import { Gup, GupSchema } from 'src/modules/gup/schemas/gup.schema';
 import {
     Moderator,
     ModeratorSchema
@@ -17,5 +18,9 @@ export const MODELS = [
     {
         name: School.name,
         schema: SchoolSchema
+    },
+    {
+        name: Gup.name,
+        schema: GupSchema
     }
 ];

@@ -4,13 +4,15 @@ import { Environment } from './constants/environment';
 import { ModeratorModule } from './modules/moderator/moderator.module';
 import { PersonModule } from './modules/person/person.module';
 import { SchoolModule } from './modules/school/school.module';
+import { GupModule } from './modules/gup/gup.module';
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         ModeratorModule,
         PersonModule,
-        SchoolModule
+        SchoolModule,
+        GupModule
     ]
 })
 export class AppModule {
