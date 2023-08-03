@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Environment } from 'src/constants/environment';
 import { MODELS } from 'src/constants/models';
 
+@Global()
 @Module({
     imports: [
         MongooseModule.forRootAsync({

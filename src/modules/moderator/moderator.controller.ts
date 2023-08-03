@@ -1,19 +1,17 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/config/exception';
 import { IResponse } from 'src/utils/interfaces/response.interface';
 import { LoginModeratorDto } from './dto/login-moderator.dto';
 import { RegisterModeratorDto } from './dto/register-moderator.dto';
-import { AuthGuard } from './guards/auth.guard';
-import { RolesGuard } from './guards/roles.guard';
 import { ModeratorService } from './moderator.service';
 import { Moderator } from './schemas/moderator.schema';
 
 @ApiTags('Moderators')
 @Controller('moderators')
-@UseGuards(AuthGuard, RolesGuard)
 export class ModeratorController {
     constructor(private readonly moderatorService: ModeratorService) {}
+
     @Post('login')
     @HttpCode(200)
     async login(
