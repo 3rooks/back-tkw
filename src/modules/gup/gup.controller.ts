@@ -104,7 +104,7 @@ export class GupController {
                 // }
             };
 
-            const b = await this.gupService.create(a);
+            const b = await this.gupService.create();
             console.log('GUP', b);
             return b;
         } catch (error) {

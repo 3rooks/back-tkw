@@ -11,9 +11,8 @@ export class GupService {
         private readonly gupModel: Model<GupDocument>
     ) {}
 
-    async create(createGupDto: object) {
-        console.log('CREATE');
-        return await this.gupModel.create({});
+    async create() {
+        return (await this.gupModel.create({}))._id;
     }
 
     findAll() {

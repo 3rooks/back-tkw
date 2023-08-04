@@ -4,19 +4,19 @@ import { Certificates, CertificatesSchema } from './certificates.schema';
 @Schema({ _id: false })
 export class Specialization {
     @Prop({ type: Boolean, default: true })
-    isStudent: boolean;
+    public readonly isStudent: boolean;
 
     @Prop({ type: Boolean, default: false })
-    isTeacher: boolean;
+    public readonly isTeacher: boolean;
 
     @Prop({ type: Boolean, default: false })
-    isRefeere: boolean;
+    public readonly isRefeere: boolean;
 
     @Prop({ type: Boolean, default: false })
-    isCoach: boolean;
+    public readonly isCoach: boolean;
 
     @Prop({ type: CertificatesSchema, default: {} })
-    certificates: Certificates;
+    public readonly certificates: Certificates;
 }
 
 export const SpecializationSchema =

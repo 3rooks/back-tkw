@@ -5,10 +5,10 @@ import { Gup } from 'src/modules/gup/schemas/gup.schema';
 @Schema({ _id: false })
 export class Studies {
     @Prop({ type: String, ref: Gup.name })
-    gup: string;
+    public readonly gup: string;
 
     @Prop({ type: String, ref: Dan.name })
-    dan: string;
+    public readonly dan: string;
 }
 
 export const StudiesSchema = SchemaFactory.createForClass(Studies);

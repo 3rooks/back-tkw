@@ -1,9 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import uuid from 'uuid-random';
-import { SchoolHistory, SchoolHistorySchema } from './school-history.schema';
-import { Specialization, SpecializationSchema } from './specialization.schema';
-import { Studies, StudiesSchema } from './studies.schema';
+import {
+    SchoolHistory,
+    SchoolHistorySchema
+} from './sub-schemas/school-history.schema';
+import {
+    Specialization,
+    SpecializationSchema
+} from './sub-schemas/specialization.schema';
+import { Studies, StudiesSchema } from './sub-schemas/studies.schema';
 
 export type PersonDocument = HydratedDocument<Person>;
 
@@ -13,22 +19,25 @@ export class Person {
     public readonly _id: string;
 
     @Prop({ type: String, required: true })
-    fullname: string;
+    public readonly fullname: string;
 
-    @Prop({ type: Number, required: true })
-    dni: number;
+    @Prop({ type: Number, unique: true, required: true })
+    public readonly dni: number;
 
     @Prop({ type: Date, required: true })
-    birth: Date;
+    public readonly birth: Date;
 
     @Prop({ type: StudiesSchema, default: {} })
-    studies: Studies;
+    public readonly studies: Studies;
 
     @Prop({ type: SpecializationSchema, default: {} })
-    specialization: Specialization;
+    public readonly specialization: Specialization;
 
     @Prop({ type: [SchoolHistorySchema] })
-    institutes: SchoolHistory[];
+    public readonly institutes: SchoolHistory[];
+
+    @Prop({ type: Boolean, default: true })
+    public readonly isActive: boolean;
 }
 
 export const PersonSchema = SchemaFactory.createForClass(Person);

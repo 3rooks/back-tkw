@@ -4,6 +4,7 @@ import { GupService } from './gup.service';
 
 @Module({
     controllers: [GupController],
-    providers: [GupService]
+    providers: [GupService],
+    exports: [GupService]
 })
 export class GupModule {}

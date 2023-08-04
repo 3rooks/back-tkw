@@ -4,6 +4,7 @@ import { DanService } from './dan.service';
 
 @Module({
     controllers: [DanController],
-    providers: [DanService]
+    providers: [DanService],
+    exports: [DanService]
 })
 export class DanModule {}

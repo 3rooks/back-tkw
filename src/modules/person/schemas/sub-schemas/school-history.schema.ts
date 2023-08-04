@@ -1,19 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import uuid from 'uuid-random';
 import { Transfer, TransferSchema } from './transfer.schema';
 
-@Schema({ _id: false })
+@Schema()
 export class SchoolHistory {
+    @Prop({ unique: true, default: () => uuid() })
+    public readonly _id: string;
+
     @Prop({ type: String, required: true })
-    school: string;
+    public readonly school: string;
 
     @Prop({ type: Date, required: true })
-    started: Date;
+    public readonly started: Date;
 
     @Prop({ type: Boolean, default: false })
-    hasDebt: boolean;
+    public readonly hasDebt: boolean;
 
     @Prop({ type: TransferSchema, default: {} })
-    transfer: Transfer;
+    public readonly transfer: Transfer;
 }
 
 export const SchoolHistorySchema = SchemaFactory.createForClass(SchoolHistory);

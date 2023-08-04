@@ -12,7 +12,7 @@ export class DanService {
     ) {}
 
     async create() {
-        return await this.danModel.create({});
+        return (await this.danModel.create({}))._id;
     }
 
     findAll() {
