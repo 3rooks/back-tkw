@@ -6,13 +6,30 @@ import {
     Param,
     Patch,
     Post,
-    Put
+    Put,
+    UploadedFile,
+    UseInterceptors
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
+import { extname, parse } from 'path';
 import { Exception } from 'src/config/exception';
+import { FILES_PATH } from 'src/utils/paths';
+import uuid from 'uuid-random';
+import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { PersonService } from './person.service';
+
+enum MimeTypes {
+    JPEG = 'image/jpeg',
+    PNG = 'image/png',
+    GIF = 'image/gif',
+    PDF = 'application/pdf'
+}
+
+const mime = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 
 @ApiTags('Persons')
 @Controller('persons')
@@ -77,5 +94,47 @@ export class PersonController {
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.personService.remove(+id);
+    }
+
+    @Post('upload')
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({ type: CreateInstituteDto })
+    @UseInterceptors(
+        FileInterceptor('form', {
+            storage: diskStorage({
+                destination: FILES_PATH,
+                filename: (req, file, cb) => {
+                    cb(
+                        null,
+                        `${parse(file.originalname).name}-${uuid()}${extname(
+                            file.originalname
+                        )}`
+                    );
+                }
+            }),
+            limits: { fileSize: 10000000 }
+            // fileFilter: (req, file, cb) => {
+            //     if (!mime.includes(file.mimetype)) {
+            //         cb(new Error('no mimetyoe valid :|: CONFLICT'), false);
+            //     } else cb(null, true);
+            // }
+        })
+    )
+    async createInstitute(
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: CreateInstituteDto
+    ) {
+        try {
+            console.log('Archivo cargado:', file);
+            console.log('Datos del formulario:', body);
+
+            return {
+                message: 'Solicitud procesada correctamente.',
+                body,
+                file
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
     }
 }
