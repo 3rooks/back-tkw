@@ -1,3 +1,4 @@
+import { Dan, DanSchema } from 'src/modules/dan/schemas/dan.schema';
 import { Gup, GupSchema } from 'src/modules/gup/schemas/gup.schema';
 import {
     Moderator,
@@ -22,5 +23,9 @@ export const MODELS = [
     {
         name: Gup.name,
         schema: GupSchema
+    },
+    {
+        name: Dan.name,
+        schema: DanSchema
     }
 ];

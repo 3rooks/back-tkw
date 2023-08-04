@@ -5,6 +5,7 @@ import { ModeratorModule } from './modules/moderator/moderator.module';
 import { PersonModule } from './modules/person/person.module';
 import { SchoolModule } from './modules/school/school.module';
 import { GupModule } from './modules/gup/gup.module';
+import { DanModule } from './modules/dan/dan.module';
 
 @Module({
     imports: [
@@ -12,7 +13,8 @@ import { GupModule } from './modules/gup/gup.module';
         ModeratorModule,
         PersonModule,
         SchoolModule,
-        GupModule
+        GupModule,
+        DanModule
     ]
 })
 export class AppModule {
