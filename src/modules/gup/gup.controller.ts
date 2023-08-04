@@ -7,12 +7,14 @@ import {
     Patch,
     Post
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/config/exception';
 import { CreateGupDto } from './dto/create-gup.dto';
 import { UpdateGupDto } from './dto/update-gup.dto';
 import { GupService } from './gup.service';
 
-@Controller('gup')
+@ApiTags('Gups')
+@Controller('gups')
 export class GupController {
     constructor(private readonly gupService: GupService) {}
 

@@ -7,10 +7,12 @@ import {
     Patch,
     Post
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { DanService } from './dan.service';
 import { UpdateDanDto } from './dto/update-dan.dto';
 
-@Controller('dan')
+@ApiTags('Dans')
+@Controller('dans')
 export class DanController {
     constructor(private readonly danService: DanService) {}
 

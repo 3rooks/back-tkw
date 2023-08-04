@@ -1,27 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ApiProperty } from '@nestjs/swagger';
-import { Certificates } from './certificates.schema';
+import { Certificates, CertificatesSchema } from './certificates.schema';
 
 @Schema({ _id: false })
 export class Specialization {
-    @ApiProperty()
     @Prop({ type: Boolean, default: true })
     isStudent: boolean;
 
-    @ApiProperty()
     @Prop({ type: Boolean, default: false })
     isTeacher: boolean;
 
-    @ApiProperty()
     @Prop({ type: Boolean, default: false })
     isRefeere: boolean;
 
-    @ApiProperty()
     @Prop({ type: Boolean, default: false })
     isCoach: boolean;
 
-    @ApiProperty()
-    @Prop({ type: Certificates })
+    @Prop({ type: CertificatesSchema, default: {} })
     certificates: Certificates;
 }
 

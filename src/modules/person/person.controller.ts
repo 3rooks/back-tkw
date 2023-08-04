@@ -8,7 +8,6 @@ import {
     Post
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { PersonService } from './person.service';
 
@@ -18,8 +17,25 @@ export class PersonController {
     constructor(private readonly personService: PersonService) {}
 
     @Post()
-    create(@Body() createPersonDto: CreatePersonDto) {
-        return this.personService.create(createPersonDto);
+    async create() {
+        const a = {
+            fullname: 'asdasda',
+            dni: 945498798,
+            birth: new Date(),
+            studies: {
+                gup: 'GUP_MODEL',
+                dan: 'DAN_MODEL'
+            },
+            institutes: {
+                school: 'asdasdas',
+                started: new Date()
+            }
+        };
+
+        const b = await this.personService.create(a);
+
+        console.log('person', b);
+        return;
     }
 
     @Get()
