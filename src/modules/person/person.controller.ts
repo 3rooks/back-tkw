@@ -4,14 +4,19 @@ import {
     Delete,
     Get,
     Param,
-    Patch,
     Post,
     Put,
     UploadedFile,
     UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBody,
+    ApiConsumes,
+    ApiOperation,
+    ApiParam,
+    ApiTags
+} from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname, parse } from 'path';
 import { Exception } from 'src/config/exception';
@@ -21,15 +26,6 @@ import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { PersonService } from './person.service';
-
-enum MimeTypes {
-    JPEG = 'image/jpeg',
-    PNG = 'image/png',
-    GIF = 'image/gif',
-    PDF = 'application/pdf'
-}
-
-const mime = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 
 @ApiTags('Persons')
 @Controller('persons')
@@ -71,33 +67,34 @@ export class PersonController {
         }
     }
 
+    @Get(':personId')
+    @ApiParam({ name: 'personId' })
+    async findOne(@Param('personId') personId: string) {
+        return await this.personService.findById(personId);
+    }
+
+    @Put(':personId')
+    async update(
+        @Param('id') personId: string,
+        @Body() updatePersonDto: UpdatePersonDto
+    ) {
+        return await this.personService.update(personId, updatePersonDto);
+    }
+
+    @Delete(':personId')
+    async remove(@Param('personId') personId: string) {
+        return await this.personService.remove(personId);
+    }
+
+    @Put('specializations/:personId')
+    @ApiParam({ name: 'personId' })
+    async updateSpecialization() {
+        return {};
+    }
+
     @Post('institutes/:personId')
-    async createSchool(@Param('personId') id: string, @Body() b: object) {
-        return await this.personService.findInstituteById(id);
-    }
-
-    @Put('institutes/:id')
-    async updateSchool(@Param('id') id: string) {
-        return await this.personService.findInstituteById(id);
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.personService.findOne(+id);
-    }
-
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto) {
-        return this.personService.update(+id, updatePersonDto);
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.personService.remove(+id);
-    }
-
-    @Post('upload')
     @ApiConsumes('multipart/form-data')
+    @ApiParam({ name: 'personId' })
     @ApiBody({ type: CreateInstituteDto })
     @UseInterceptors(
         FileInterceptor('form', {
@@ -114,27 +111,57 @@ export class PersonController {
             }),
             limits: { fileSize: 10000000 }
             // fileFilter: (req, file, cb) => {
-            //     if (!mime.includes(file.mimetype)) {
+            //     if (!mimeTypes.includes(file.mimetype)) {
             //         cb(new Error('no mimetyoe valid :|: CONFLICT'), false);
             //     } else cb(null, true);
             // }
         })
     )
     async createInstitute(
+        @Param('personId') personId: string,
         @UploadedFile() file: Express.Multer.File,
-        @Body() body: CreateInstituteDto
+        @Body() createInstituteDto: CreateInstituteDto
     ) {
         try {
-            console.log('Archivo cargado:', file);
-            console.log('Datos del formulario:', body);
+            const exist = await this.personService.findById(personId);
+
+            if (!exist)
+                throw new Exception({
+                    status: 'NOT_FOUND',
+                    message: 'Person not exists'
+                });
+
+            const updated = await this.personService.pushInstituteById(
+                personId,
+                {
+                    school: createInstituteDto.school,
+                    started: createInstituteDto.started,
+                    hasDebt: createInstituteDto.hasDebt,
+                    date: createInstituteDto.date || null,
+                    form: file ? file.path : null
+                }
+            );
 
             return {
-                message: 'Solicitud procesada correctamente.',
-                body,
-                file
+                statusCode: 200,
+                data: updated,
+                message: 'institute added'
             };
         } catch (error) {
             throw Exception.catch(error.message);
         }
+    }
+
+    @ApiOperation({ summary: 'Update an institute' })
+    @Put('institutes/:personId/:instituteId')
+    @ApiParam({ name: 'personId' })
+    @ApiParam({ name: 'instituteId' })
+    async updateInstitute() {
+        return {};
+    }
+
+    @Get('file/:personId')
+    async findFile() {
+        return {};
     }
 }

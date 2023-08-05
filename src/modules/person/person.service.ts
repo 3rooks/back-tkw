@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DanService } from '../dan/dan.service';
 import { GupService } from '../gup/gup.service';
+import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { Person, PersonDocument } from './schemas/person.schema';
@@ -36,6 +37,30 @@ export class PersonService {
         return await this.personModel.findOne({ dni }).exec();
     }
 
+    async findById(id: string) {
+        return await this.personModel.findById(id).exec();
+    }
+
+    async pushInstituteById(id: string, newInstitute: CreateInstituteDto) {
+        return await this.personModel.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    institutes: {
+                        school: newInstitute.school,
+                        started: newInstitute.started,
+                        hasDebt: newInstitute.hasDebt,
+                        transfer: {
+                            date: newInstitute.date,
+                            form: newInstitute.form
+                        }
+                    }
+                }
+            },
+            { new: true }
+        );
+    }
+
     async findInstituteById(instituteId: string) {
         return await this.personModel
             .findOne({ 'institutes._id': instituteId })
@@ -59,11 +84,13 @@ export class PersonService {
         return `This action returns a #${id} person`;
     }
 
-    update(id: number, updatePersonDto: UpdatePersonDto) {
-        return `This action updates a #${id} person`;
+    async update(id: string, updatePersonDto: UpdatePersonDto) {
+        return await this.personModel.findByIdAndUpdate(id, updatePersonDto);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} person`;
+    async remove(id: string) {
+        return await this.personModel.findByIdAndUpdate(id, {
+            isActive: false
+        });
     }
 }
