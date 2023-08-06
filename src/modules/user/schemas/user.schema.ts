@@ -16,13 +16,13 @@ export class User {
     @Prop({ unique: true, default: () => uuid() })
     public readonly _id: string;
 
-    @Prop({ type: String, required: true })
+    @Prop({ required: true })
     public readonly fullname: string;
 
-    @Prop({ type: Number, unique: true, required: true })
+    @Prop({ unique: true, required: true })
     public readonly dni: number;
 
-    @Prop({ type: Date, required: true })
+    @Prop({ required: true })
     public readonly birth: Date;
 
     @Prop({ type: StudiesSchema, default: {} })
@@ -34,7 +34,7 @@ export class User {
     @Prop({ type: [InstituteSchema] })
     public readonly institutes: Institute[];
 
-    @Prop({ type: Boolean, default: true })
+    @Prop({ default: true })
     public readonly isActive: boolean;
 }
 

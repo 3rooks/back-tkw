@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import uuid from 'uuid-random';
 
 @Schema()
 export class Base {
@@ -15,20 +16,26 @@ export class Base {
     public readonly isApproved: boolean;
 
     @Prop({ default: null })
-    public readonly remark: string;
+    public readonly remark?: string;
 }
 
 @Schema()
 export class Dan extends Base {
-    @Prop({ required: true })
-    public readonly color: string;
-}
+    @Prop({ unique: true, default: () => uuid() })
+    public readonly _id: string;
 
-@Schema()
-export class Gup extends Base {
     @Prop({ required: true })
     public readonly level: string;
 }
 
-export const GupSchema = SchemaFactory.createForClass(Gup);
+@Schema()
+export class Gup extends Base {
+    @Prop({ unique: true, default: () => uuid() })
+    public readonly _id: string;
+
+    @Prop({ required: true })
+    public readonly color: string;
+}
+
 export const DanSchema = SchemaFactory.createForClass(Dan);
+export const GupSchema = SchemaFactory.createForClass(Gup);
