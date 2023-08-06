@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { danStudiesSchema, gupStudiesSchema } from 'src/constants/studies';
+import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateCertificatesDto } from './dto/update-certificates.dto';
 import { UpdateDanGupDto } from './dto/update-dan.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 import { User, UserDocument } from './schemas/user.schema';
@@ -31,7 +33,7 @@ export class UserService {
         return await this.userModel.findOne({ dni }).exec();
     }
 
-    async create(createUserDto: CreateUserDto) {
+    async createUser(createUserDto: CreateUserDto) {
         return await this.userModel.create({
             fullname: createUserDto.fullname,
             dni: createUserDto.dni,
@@ -50,7 +52,7 @@ export class UserService {
         });
     }
 
-    async findOne(id: string) {
+    async findById(id: string) {
         return await this.userModel.findById(id);
     }
 
@@ -88,90 +90,66 @@ export class UserService {
         return await this.userModel.findByIdAndUpdate(id, data);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} user`;
+    async updateCertificates(userId: string, files: UpdateCertificatesDto) {
+        if (files.gal) {
+            return await this.userModel.findByIdAndUpdate(
+                userId,
+                {
+                    'specialization.certificates': {
+                        gal: files.gal[0].path
+                    }
+                },
+                { new: true }
+            );
+        }
+
+        // gal
+        // coach
+        // ref
+        // gal y coach
+        // gal y ref
+        // coach ref
+
+        return await this.userModel.findByIdAndUpdate(
+            userId,
+            {
+                'specialization.certificates': {
+                    gal: files.gal[0].path,
+                    coach: files.coach[0].path,
+                    refeere: files.refeere[0].path
+                }
+            },
+            { new: true }
+        );
+    }
+
+    async createInstitute(id: string, newInstitute: CreateInstituteDto) {
+        return await this.userModel.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    institutes: {
+                        school: newInstitute.school,
+                        started: newInstitute.started,
+                        hasDebt: newInstitute.hasDebt,
+                        transfer: {
+                            date: newInstitute.date,
+                            form: newInstitute.form
+                        }
+                    }
+                }
+            },
+            { new: true }
+        );
+    }
+
+    async updateInstitute(id: string, data: object) {
+        return await this.userModel.findByIdAndUpdate(id, data, { new: true });
+    }
+
+    async removeUser(id: string) {
+        return await this.userModel.findByIdAndUpdate(id, {
+            isActive: false
+        });
     }
 }
-
-// @Injectable()
-// export class PersonService {
-//     constructor(
-//         @InjectModel(Person.name)
-//         private readonly personModel: Model<PersonDocument>,
-//         private readonly gupService: GupService,
-//         private readonly danService: DanService
-//     ) {}
-
-//     async create(createPersonDto: CreatePersonDto) {
-//         return await this.personModel.create({
-//             fullname: createPersonDto.fullname,
-//             dni: createPersonDto.dni,
-//             birth: createPersonDto.birth,
-//             studies: {
-//                 gup: await this.gupService.create(),
-//                 dan: await this.danService.create()
-//             },
-//             institutes: {
-//                 school: createPersonDto.school,
-//                 started: createPersonDto.started
-//             }
-//         });
-//     }
-
-//     async findById(id: string) {
-//         return await this.personModel.findById(id).exec();
-//     }
-
-//     async pushInstituteById(id: string, newInstitute: CreateInstituteDto) {
-//         return await this.personModel.findByIdAndUpdate(
-//             id,
-//             {
-//                 $push: {
-//                     institutes: {
-//                         school: newInstitute.school,
-//                         started: newInstitute.started,
-//                         hasDebt: newInstitute.hasDebt,
-//                         transfer: {
-//                             date: newInstitute.date,
-//                             form: newInstitute.form
-//                         }
-//                     }
-//                 }
-//             },
-//             { new: true }
-//         );
-//     }
-
-//     async findInstituteById(instituteId: string) {
-//         return await this.personModel
-//             .findOne({ 'institutes._id': instituteId })
-//             .exec();
-//     }
-
-//     async findAll() {
-//         return await this.personModel.find().exec();
-//     }
-
-//     async findOlder() {
-//         const adultAgeLimit = new Date();
-//         adultAgeLimit.setFullYear(adultAgeLimit.getFullYear() - 18);
-
-//         return await this.personModel
-//             .find({ birth: { $lte: adultAgeLimit } })
-//             .exec();
-//     }
-
-//     findOne(id: number) {
-//         return `This action returns a #${id} person`;
-//     }
-
-//     async update(id: string, updatePersonDto: UpdatePersonDto) {
-//         return await this.personModel.findByIdAndUpdate(id, updatePersonDto);
-//     }
-
-//     async remove(id: string) {
-//         return await this.personModel.findByIdAndUpdate(id, {
-//             isActive: false
-//         });
-//     }
-// }
