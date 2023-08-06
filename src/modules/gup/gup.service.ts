@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateGupDto } from './dto/update-gup.dto';
 import { Gup, GupDocument } from './schemas/gup.schema';
 
 @Injectable()
@@ -15,19 +14,18 @@ export class GupService {
         return (await this.gupModel.create({}))._id;
     }
 
-    findAll() {
-        return `This action returns all gup`;
+    async findOne(id: string) {
+        return await this.gupModel.findOne({ id });
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} gup`;
-    }
-
-    update(id: number, updateGupDto: UpdateGupDto) {
-        return `This action updates a #${id} gup`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} gup`;
+    async update(id: string, levelId: string, updateGupDto: object) {
+        const updateFields = { [`levels.${levelId}`]: updateGupDto };
+        return await this.gupModel.findByIdAndUpdate(
+            id,
+            {},
+            {
+                new: true
+            }
+        );
     }
 }

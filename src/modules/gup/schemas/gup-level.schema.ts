@@ -1,24 +1,39 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import uuid from 'uuid-random';
 
-@Schema({ _id: false })
+@Schema()
 export class GupLevel {
+    @Prop({ default: () => uuid() })
+    public readonly _id?: string;
+
     @Prop({ required: true })
-    color: string;
+    public readonly color: string;
 
     @Prop({ default: null })
-    teacher: string;
+    public readonly teacher: string;
 
     @Prop({ default: null })
-    school: string;
+    public readonly school: string;
 
     @Prop({ default: null })
-    approvedDate: Date;
+    public readonly approvedDate: Date;
 
     @Prop({ default: false })
-    isApproved: boolean;
+    public readonly isApproved: boolean;
 
     @Prop({ default: null })
-    remark: string;
+    public readonly remark: string;
 }
 
 export const GupLevelSchema = SchemaFactory.createForClass(GupLevel);
+
+export const a: GupLevel = {
+    color: '',
+    teacher: '',
+    school: '',
+    approvedDate: new Date(),
+    isApproved: false,
+    remark: ''
+};
+
+type GupLevelWithoutColor = Omit<GupLevel, 'color'>;
