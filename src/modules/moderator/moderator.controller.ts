@@ -22,7 +22,7 @@ export class ModeratorController {
                 loginModeratorDto.email
             );
 
-            if (!exist)
+            if (!exist || !exist.isActive)
                 throw new Exception({
                     status: 'UNAUTHORIZED',
                     message: 'user unauthorized'
