@@ -10,16 +10,28 @@ import {
     Res,
     StreamableFile,
     UploadedFile,
+    UseGuards,
     UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiConsumes,
+    ApiParam,
+    ApiTags
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { createReadStream } from 'fs';
 import path from 'path';
 import { Exception } from 'src/config/exception';
 import { localOptions } from 'src/config/multer';
 import { mimeTypes } from 'src/constants/mimetypes';
+import { ROLES } from 'src/constants/roles';
+import { AuthAccess } from 'src/lib/auth/decorators/auth.decorator';
+import { RolesAccess } from 'src/lib/auth/decorators/roles.decorator';
+import { AuthGuard } from 'src/lib/auth/guards/auth.guard';
+import { RolesGuard } from 'src/lib/auth/guards/roles.guard';
 import { FILES_PATH } from 'src/utils/paths';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -31,6 +43,7 @@ import { UserService } from './user.service';
 
 @ApiTags('Users')
 @Controller('users')
+@UseGuards(AuthGuard, RolesGuard)
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
@@ -49,6 +62,9 @@ export class UserController {
     }
 
     @Get('all')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @HttpCode(200)
     async findAll() {
         try {
@@ -63,6 +79,9 @@ export class UserController {
     }
 
     @Get(':userId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @HttpCode(200)
     async findById(@Param('userId') userId: string) {
         try {
@@ -85,6 +104,9 @@ export class UserController {
     }
 
     @Delete(':userId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN)
     @HttpCode(200)
     async removeUser(@Param('userId') userId: string) {
         try {
@@ -99,6 +121,9 @@ export class UserController {
     }
 
     @Post()
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN)
     @HttpCode(201)
     async createUser(@Body() bodyDto: CreateUserDto) {
         try {
@@ -119,6 +144,9 @@ export class UserController {
     }
 
     @Put(':userId/dan/:levelId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @HttpCode(200)
     async updateDanStudies(
         @Param('userId') userId: string,
@@ -149,6 +177,9 @@ export class UserController {
     }
 
     @Put(':userId/gup/:levelId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @HttpCode(200)
     async updateGupStudies(
         @Param('userId') userId: string,
@@ -179,6 +210,9 @@ export class UserController {
     }
 
     @Put(':userId/spec')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @HttpCode(200)
     async updateSpecialization(
         @Param('userId') userId: string,
@@ -207,10 +241,14 @@ export class UserController {
     }
 
     @Put(':userId/cert/:field')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @ApiConsumes('multipart/form-data')
     @ApiParam({ name: 'field', enum: ['gal', 'coach', 'referee'] })
     @ApiBody({ type: UpdateCertificateDto })
     @UseInterceptors(FileInterceptor('file', localOptions))
+    @HttpCode(200)
     async updateCertificates(
         @Param('userId') userId: string,
         @Param('field') field: string,
@@ -246,6 +284,10 @@ export class UserController {
     }
 
     @Post('inst/:userId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN)
+    @HttpCode(200)
     async createInstitute(
         @Param('userId') userId: string,
         @Body() bodyDto: CreateInstituteDto
@@ -273,6 +315,10 @@ export class UserController {
     }
 
     @Put('inst/:userId/:instId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
+    @HttpCode(200)
     async updateInstitute(
         @Param('userId') userId: string,
         @Param('instId') instId: string,
@@ -302,8 +348,12 @@ export class UserController {
     }
 
     @Put('inst/:userId/tran/:instId')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(FileInterceptor('form', localOptions))
+    @HttpCode(200)
     async updateTransfer(
         @Param('userId') userId: string,
         @Param('instId') instId: string,
@@ -341,6 +391,10 @@ export class UserController {
     }
 
     @Get('file/:fileUrl')
+    @ApiBearerAuth()
+    @AuthAccess(true)
+    @RolesAccess(ROLES.SUPER, ROLES.ADMIN, ROLES.USER)
+    @HttpCode(200)
     async findFile(
         @Param('fileUrl') fileUrl: string,
         @Res({ passthrough: true }) res: Response
