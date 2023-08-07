@@ -39,9 +39,9 @@ export class CreateInstituteDto {
         message: 'invalid DATETETET'
     })
     @IsOptional()
-    public readonly date: Date | null;
+    public readonly date?: Date;
 
-    @ApiProperty({ type: String, format: 'binary', required: false })
+    @ApiProperty({ format: 'binary', required: false })
     @IsOptional()
-    public readonly form: string | null;
+    public readonly form?: string;
 }

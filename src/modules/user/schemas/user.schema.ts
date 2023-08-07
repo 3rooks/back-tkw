@@ -14,7 +14,7 @@ export type UserDocument = HydratedDocument<User>;
 @Schema({ timestamps: true, versionKey: false })
 export class User {
     @Prop({ unique: true, default: () => uuid() })
-    public readonly _id: string;
+    public readonly _id?: string;
 
     @Prop({ required: true })
     public readonly fullname: string;
@@ -25,16 +25,16 @@ export class User {
     @Prop({ required: true })
     public readonly birth: Date;
 
-    @Prop({ type: StudiesSchema, default: {} })
+    @Prop({ type: StudiesSchema })
     public readonly studies: Studies;
 
-    @Prop({ type: SpecializationSchema, default: {} })
+    @Prop({ type: SpecializationSchema })
     public readonly specialization: Specialization;
 
     @Prop({ type: [InstituteSchema] })
     public readonly institutes: Institute[];
 
-    @Prop({ default: true })
+    @Prop({ required: true })
     public readonly isActive: boolean;
 }
 

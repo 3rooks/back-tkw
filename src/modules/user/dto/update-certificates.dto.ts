@@ -12,7 +12,7 @@ export class UpdateCertificatesDto {
 
     @ApiProperty({ format: 'binary', required: false })
     @IsOptional()
-    public readonly refeere?: Express.Multer.File[];
+    public readonly referee?: Express.Multer.File[];
 }
 
 export class CertificatesFiles {
@@ -26,5 +26,5 @@ export class CertificatesFiles {
 
     @ApiProperty({ format: 'binary', required: false })
     @IsOptional()
-    public readonly refeere?: BinaryType;
+    public readonly referee?: BinaryType;
 }

@@ -33,22 +33,25 @@ export class UserService {
         return await this.userModel.findOne({ dni }).exec();
     }
 
-    async createUser(createUserDto: CreateUserDto) {
+    async createUser(user: CreateUserDto) {
         return await this.userModel.create({
-            fullname: createUserDto.fullname,
-            dni: createUserDto.dni,
-            birth: createUserDto.birth,
+            fullname: user.fullname,
+            dni: user.dni,
+            birth: user.birth,
             studies: {
                 dan: danStudiesSchema,
                 gup: gupStudiesSchema
             },
+            specialization: { certificates: {} },
             institutes: [
                 {
-                    school: createUserDto.school,
-                    started: createUserDto.started,
-                    hasDebt: createUserDto.hasDebt
+                    school: user.school,
+                    started: user.started,
+                    hasDebt: user.hasDebt,
+                    transfer: {}
                 }
-            ]
+            ],
+            isActive: true
         });
     }
 
@@ -64,7 +67,7 @@ export class UserService {
 
         return await this.userModel.findOneAndUpdate(
             query,
-            { $set: { 'studies.dan.$': data } },
+            { $set: { 'studies.dan.$': { ...data, _id: levelId } } },
             {
                 new: true
             }
@@ -74,7 +77,7 @@ export class UserService {
     async updateGup(id: string, levelId: string, data: UpdateDanGupDto) {
         const query = {
             _id: id,
-            'studies.gup': { $elemMatch: { _id: levelId } }
+            'studies.gup': { $elemMatch: { ...data, _id: levelId } }
         };
 
         return await this.userModel.findOneAndUpdate(
@@ -87,38 +90,39 @@ export class UserService {
     }
 
     async updateSpecialization(id: string, data: UpdateSpecializationDto) {
-        return await this.userModel.findByIdAndUpdate(id, data);
+        return await this.userModel.findByIdAndUpdate(
+            id,
+            {
+                'specialization.isStudent': data.isStudent,
+                'specialization.isTeacher': data.isTeacher,
+                'specialization.isRefeere': data.isRefeere,
+                'specialization.isCoach': data.isCoach
+            },
+            { new: true }
+        );
     }
 
     async updateCertificates(userId: string, files: UpdateCertificatesDto) {
+        const updateData: any = {};
+
         if (files.gal) {
-            return await this.userModel.findByIdAndUpdate(
-                userId,
-                {
-                    'specialization.certificates': {
-                        gal: files.gal[0].path
-                    }
-                },
-                { new: true }
-            );
+            updateData['specialization.certificates.gal'] =
+                files.gal[0].filename;
         }
 
-        // gal
-        // coach
-        // ref
-        // gal y coach
-        // gal y ref
-        // coach ref
+        if (files.coach) {
+            updateData['specialization.certificates.coach'] =
+                files.coach[0].filename;
+        }
+
+        if (files.referee) {
+            updateData['specialization.certificates.referee'] =
+                files.referee[0].filename;
+        }
 
         return await this.userModel.findByIdAndUpdate(
             userId,
-            {
-                'specialization.certificates': {
-                    gal: files.gal[0].path,
-                    coach: files.coach[0].path,
-                    refeere: files.refeere[0].path
-                }
-            },
+            { $set: updateData },
             { new: true }
         );
     }
@@ -143,8 +147,36 @@ export class UserService {
         );
     }
 
-    async updateInstitute(id: string, data: object) {
-        return await this.userModel.findByIdAndUpdate(id, data, { new: true });
+    async updateInstitute(
+        id: string,
+        instId: string,
+        data: CreateInstituteDto
+    ) {
+        const query = {
+            _id: id,
+            'institutes._id': instId
+        };
+
+        return await this.userModel.findOneAndUpdate(
+            query,
+            {
+                $set: {
+                    'institutes.$': {
+                        school: data.school,
+                        started: data.started,
+                        hasDebt: data.hasDebt,
+                        transfer: {
+                            date: data.date,
+                            form: data.form
+                        },
+                        _id: instId
+                    }
+                }
+            },
+            {
+                new: true
+            }
+        );
     }
 
     async removeUser(id: string) {

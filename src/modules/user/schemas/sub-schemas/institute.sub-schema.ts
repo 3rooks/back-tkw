@@ -26,7 +26,7 @@ export class Institute {
     @Prop({ required: true })
     public readonly hasDebt: boolean;
 
-    @Prop({ type: TransferSchema, default: {} })
+    @Prop({ type: TransferSchema })
     public readonly transfer: Transfer;
 }
 

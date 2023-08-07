@@ -36,3 +36,7 @@ lerna-debug.log*
 
 # Environment
 .env
+
+# Output
+files/**
+!.gitkeep

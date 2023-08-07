@@ -28,7 +28,7 @@ export class Specialization {
     @Prop({ default: false })
     public readonly isCoach: boolean;
 
-    @Prop({ type: CertificatesSchema, default: {} })
+    @Prop({ type: CertificatesSchema })
     public readonly certificates: Certificates;
 }
 

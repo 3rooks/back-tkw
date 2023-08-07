@@ -29,7 +29,7 @@ export class CreateUserDto {
     @IsNotEmpty({ message: 'birth date should exist' })
     public readonly birth: Date;
 
-    @ApiProperty({ example: 'Institute #11' })
+    @ApiProperty({ example: 'Institute #1' })
     @Length(2, 50, { message: 'school must be must be 2-50 characters' })
     @IsString({ message: 'school must be an string' })
     @IsNotEmpty({ message: 'property school should exist' })

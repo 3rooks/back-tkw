@@ -7,6 +7,9 @@ import {
     Patch,
     Post,
     Put,
+    Res,
+    StreamableFile,
+    UploadedFile,
     UploadedFiles,
     UseInterceptors
 } from '@nestjs/common';
@@ -15,8 +18,10 @@ import {
     FileInterceptor
 } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { createReadStream } from 'fs';
 import { diskStorage } from 'multer';
-import { extname, parse } from 'path';
+import path, { extname, parse } from 'path';
 import { Exception } from 'src/config/exception';
 import { FILES_PATH } from 'src/utils/paths';
 import uuid from 'uuid-random';
@@ -28,7 +33,6 @@ import {
 } from './dto/update-certificates.dto';
 import { UpdateDanGupDto } from './dto/update-dan.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('Users')
@@ -197,14 +201,14 @@ export class UserController {
 
     @Put('spec/cert/:userId')
     @ApiConsumes('multipart/form-data')
-    @ApiParam({ name: 'userId', enum: ['gal', 'coach', 'refeere'] })
+    @ApiParam({ name: 'userId' })
     @ApiBody({ type: CertificatesFiles })
     @UseInterceptors(
         FileFieldsInterceptor(
             [
                 { name: 'gal', maxCount: 1 },
                 { name: 'coach', maxCount: 1 },
-                { name: 'refeere', maxCount: 1 }
+                { name: 'referee', maxCount: 1 }
             ],
             {
                 dest: FILES_PATH,
@@ -236,7 +240,10 @@ export class UserController {
         files: UpdateCertificatesDto
     ) {
         try {
-            const exist = await this.userService.findById(userId);
+            const exist = await this.userService.updateCertificates(
+                userId,
+                files
+            );
 
             if (!exist)
                 throw new Exception({
@@ -244,14 +251,9 @@ export class UserController {
                     message: 'USER NOT FOUND'
                 });
 
-            const user = await this.userService.updateCertificates(
-                userId,
-                files
-            );
-
             return {
                 statusCode: 200,
-                data: user,
+                data: exist,
                 message: 'updated'
             };
         } catch (error) {
@@ -261,7 +263,7 @@ export class UserController {
 
     @Post('inst/:userId')
     @ApiConsumes('multipart/form-data')
-    @ApiParam({ name: 'personId' })
+    @ApiParam({ name: 'userId' })
     @ApiBody({ type: CreateInstituteDto })
     @UseInterceptors(
         FileInterceptor('form', {
@@ -286,7 +288,7 @@ export class UserController {
     )
     async createInstitute(
         @Param('userId') userId: string,
-        @UploadedFiles() file: Express.Multer.File,
+        @UploadedFile() file: Express.Multer.File,
         @Body() createInstituteDto: CreateInstituteDto
     ) {
         try {
@@ -303,7 +305,7 @@ export class UserController {
                 started: createInstituteDto.started,
                 hasDebt: createInstituteDto.hasDebt,
                 date: createInstituteDto.date || null,
-                form: file ? file.path : null
+                form: file ? file.filename : null
             });
 
             return {
@@ -317,16 +319,99 @@ export class UserController {
     }
 
     @Patch('inst/:userId/:instId')
+    @ApiConsumes('multipart/form-data')
+    @ApiParam({ name: 'userId' })
+    @ApiParam({ name: 'instId' })
+    @ApiBody({ type: CreateInstituteDto })
+    @UseInterceptors(
+        FileInterceptor('form', {
+            storage: diskStorage({
+                destination: FILES_PATH,
+                filename: (req, file, cb) => {
+                    cb(
+                        null,
+                        `${parse(file.originalname).name}-${uuid()}${extname(
+                            file.originalname
+                        )}`
+                    );
+                }
+            }),
+            limits: { fileSize: 10000000 }
+            // fileFilter: (req, file, cb) => {
+            //     if (!mimeTypes.includes(file.mimetype)) {
+            //         cb(new Error('no mimetyoe valid :|: CONFLICT'), false);
+            //     } else cb(null, true);
+            // }
+        })
+    )
     async updateInstitute(
         @Param('userId') userId: string,
         @Param('instId') instId: string,
-        @Body() updateUserDto: UpdateUserDto
+        @UploadedFile() file: Express.Multer.File,
+        @Body() updateUserDto: CreateInstituteDto
     ) {
-        return await this.userService.updateInstitute(userId, updateUserDto);
+        try {
+            const exist = await this.userService.updateInstitute(
+                userId,
+                instId,
+                {
+                    school: updateUserDto.school,
+                    started: updateUserDto.started,
+                    hasDebt: updateUserDto.hasDebt,
+                    date: updateUserDto.date || null,
+                    form: file ? file.filename : null
+                }
+            );
+
+            if (!exist)
+                throw new Exception({
+                    status: 'NOT_FOUND',
+                    message: 'not found aaa'
+                });
+
+            return {
+                statusCode: 200,
+                date: exist,
+                message: 'updated'
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
     }
 
     @Delete(':userId')
     async removeUser(@Param('userId') userId: string) {
-        return await this.userService.removeUser(userId);
+        try {
+            const results = await this.userService.removeUser(userId);
+
+            return {
+                statusCode: 200,
+                data: results,
+                message: 'deleted'
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
+    }
+
+    @Get('file/:fileUrl')
+    async findFile(
+        @Param('fileUrl') fileUrl: string,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            const filePath = path.join(FILES_PATH, fileUrl);
+
+            const fileStream = createReadStream(filePath);
+
+            res.set({
+                'Content-Type': 'image/png',
+                'Content-Disposition': `attachment; filename="${fileUrl}"`
+            });
+
+            return new StreamableFile(fileStream);
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
     }
 }
