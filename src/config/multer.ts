@@ -19,7 +19,7 @@ export const localOptions: Options = {
         }
     }),
     fileFilter: (req, file, cb) => {
-        if (!mimeTypes.includes(file.mimetype)) {
+        if (!Object.values(mimeTypes).includes(file.mimetype)) {
             cb(null, false);
         } else cb(null, true);
     }

@@ -5,7 +5,6 @@ import {
     Get,
     HttpCode,
     Param,
-    Patch,
     Post,
     Put,
     Res,
@@ -17,17 +16,17 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { createReadStream } from 'fs';
-import { diskStorage } from 'multer';
-import path, { extname, parse } from 'path';
+import path from 'path';
 import { Exception } from 'src/config/exception';
 import { localOptions } from 'src/config/multer';
+import { mimeTypes } from 'src/constants/mimetypes';
 import { FILES_PATH } from 'src/utils/paths';
-import uuid from 'uuid-random';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateCertificateDto } from './dto/update-certificates.dto';
 import { UpdateDanGupDto } from './dto/update-dan.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
+import { UpdateTransferDto } from './dto/update-transfer.dto';
 import { UserService } from './user.service';
 
 @ApiTags('Users')
@@ -79,6 +78,20 @@ export class UserController {
                 statusCode: 200,
                 data: user,
                 message: 'USER data'
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
+    }
+
+    @Delete(':userId')
+    @HttpCode(200)
+    async removeUser(@Param('userId') userId: string) {
+        try {
+            return {
+                statusCode: 200,
+                data: await this.userService.removeUser(userId),
+                message: 'USER deleted'
             };
         } catch (error) {
             throw Exception.catch(error.message);
@@ -195,7 +208,6 @@ export class UserController {
 
     @Put(':userId/cert/:field')
     @ApiConsumes('multipart/form-data')
-    @ApiParam({ name: 'userId' })
     @ApiParam({ name: 'field', enum: ['gal', 'coach', 'referee'] })
     @ApiBody({ type: UpdateCertificateDto })
     @UseInterceptors(FileInterceptor('file', localOptions))
@@ -234,147 +246,94 @@ export class UserController {
     }
 
     @Post('inst/:userId')
-    @ApiConsumes('multipart/form-data')
-    @ApiParam({ name: 'userId' })
-    @ApiBody({ type: CreateInstituteDto })
-    @UseInterceptors(
-        FileInterceptor('form', {
-            storage: diskStorage({
-                destination: FILES_PATH,
-                filename: (req, file, cb) => {
-                    cb(
-                        null,
-                        `${parse(file.originalname).name}-${uuid()}${extname(
-                            file.originalname
-                        )}`
-                    );
-                }
-            }),
-            limits: { fileSize: 10000000 },
-            fileFilter: (req, file, cb) => {
-                // Define tus reglas de filtrado personalizadas aquí
-                const allowedMimeTypes = [
-                    'image/jpeg',
-                    'image/png',
-                    'application/pdf'
-                ];
-
-                if (!allowedMimeTypes.includes(file.mimetype)) {
-                    return cb(
-                        new Exception({
-                            status: 'BAD_REQUEST',
-                            message: 'NOT VALID '
-                        }),
-                        false
-                    );
-                }
-
-                cb(null, true);
-            }
-        })
-    )
     async createInstitute(
         @Param('userId') userId: string,
-        @UploadedFile() file: Express.Multer.File,
-        @Body() createInstituteDto: CreateInstituteDto
+        @Body() bodyDto: CreateInstituteDto
     ) {
         try {
-            const exist = await this.userService.findById(userId);
-
-            if (!exist)
-                throw new Exception({
-                    status: 'NOT_FOUND',
-                    message: 'Person not exists'
-                });
-
-            const updated = await this.userService.createInstitute(userId, {
-                school: createInstituteDto.school,
-                started: createInstituteDto.started,
-                hasDebt: createInstituteDto.hasDebt,
-                date: createInstituteDto.date || null,
-                form: file ? file.filename : null
-            });
-
-            return {
-                statusCode: 200,
-                data: updated,
-                message: 'institute added'
-            };
-        } catch (error) {
-            throw Exception.catch(error.message);
-        }
-    }
-
-    @Patch('inst/:userId/:instId')
-    @ApiConsumes('multipart/form-data')
-    @ApiParam({ name: 'userId' })
-    @ApiParam({ name: 'instId' })
-    @ApiBody({ type: CreateInstituteDto })
-    @UseInterceptors(
-        FileInterceptor('form', {
-            storage: diskStorage({
-                destination: FILES_PATH,
-                filename: (req, file, cb) => {
-                    cb(
-                        null,
-                        `${parse(file.originalname).name}-${uuid()}${extname(
-                            file.originalname
-                        )}`
-                    );
-                }
-            }),
-            limits: { fileSize: 10000000 }
-            // fileFilter: (req, file, cb) => {
-            //     if (!mimeTypes.includes(file.mimetype)) {
-            //         cb(new Error('no mimetyoe valid :|: CONFLICT'), false);
-            //     } else cb(null, true);
-            // }
-        })
-    )
-    async updateInstitute(
-        @Param('userId') userId: string,
-        @Param('instId') instId: string,
-        @UploadedFile() file: Express.Multer.File,
-        @Body() updateUserDto: CreateInstituteDto
-    ) {
-        try {
-            const exist = await this.userService.updateInstitute(
+            const results = await this.userService.createInstitute(
                 userId,
-                instId,
-                {
-                    school: updateUserDto.school,
-                    started: updateUserDto.started,
-                    hasDebt: updateUserDto.hasDebt,
-                    date: updateUserDto.date || null,
-                    form: file ? file.filename : null
-                }
+                bodyDto
             );
 
-            if (!exist)
+            if (!results)
                 throw new Exception({
                     status: 'NOT_FOUND',
-                    message: 'not found aaa'
+                    message: 'USER does not exist'
                 });
-
-            return {
-                statusCode: 200,
-                date: exist,
-                message: 'updated'
-            };
-        } catch (error) {
-            throw Exception.catch(error.message);
-        }
-    }
-
-    @Delete(':userId')
-    async removeUser(@Param('userId') userId: string) {
-        try {
-            const results = await this.userService.removeUser(userId);
 
             return {
                 statusCode: 200,
                 data: results,
-                message: 'deleted'
+                message: 'USER updated'
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
+    }
+
+    @Put('inst/:userId/:instId')
+    async updateInstitute(
+        @Param('userId') userId: string,
+        @Param('instId') instId: string,
+        @Body() updateUserDto: CreateInstituteDto
+    ) {
+        try {
+            const results = await this.userService.updateInstitute(
+                userId,
+                instId,
+                updateUserDto
+            );
+
+            if (!results)
+                throw new Exception({
+                    status: 'NOT_FOUND',
+                    message: 'USER not found'
+                });
+
+            return {
+                statusCode: 200,
+                date: results,
+                message: 'USER updated'
+            };
+        } catch (error) {
+            throw Exception.catch(error.message);
+        }
+    }
+
+    @Put('inst/:userId/tran/:instId')
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(FileInterceptor('form', localOptions))
+    async updateTransfer(
+        @Param('userId') userId: string,
+        @Param('instId') instId: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() bodyDto: UpdateTransferDto
+    ) {
+        try {
+            if (!file)
+                throw new Exception({
+                    status: 'BAD_REQUEST',
+                    message: 'invalid file/mimetype'
+                });
+
+            const results = await this.userService.updateTransfer(
+                userId,
+                instId,
+                file,
+                bodyDto
+            );
+
+            if (!results)
+                throw new Exception({
+                    status: 'NOT_FOUND',
+                    message: 'USER not found'
+                });
+
+            return {
+                statusCode: 200,
+                data: results,
+                message: 'USER updated'
             };
         } catch (error) {
             throw Exception.catch(error.message);
@@ -388,11 +347,10 @@ export class UserController {
     ) {
         try {
             const filePath = path.join(FILES_PATH, fileUrl);
-
             const fileStream = createReadStream(filePath);
 
             res.set({
-                'Content-Type': 'image/png',
+                'Content-Type': `${mimeTypes[fileUrl.split('.')[1]]}`,
                 'Content-Disposition': `attachment; filename="${fileUrl}"`
             });
 

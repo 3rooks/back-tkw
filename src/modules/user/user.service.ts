@@ -6,6 +6,7 @@ import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateDanGupDto } from './dto/update-dan.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
+import { UpdateTransferDto } from './dto/update-transfer.dto';
 import { Dan, Gup } from './schemas/sub-schemas/dan-gup.sub-schema';
 import { User, UserDocument } from './schemas/user.schema';
 
@@ -147,55 +148,65 @@ export class UserService {
         );
     }
 
-    async createInstitute(id: string, newInstitute: CreateInstituteDto) {
+    async createInstitute(userId: string, bodyDto: CreateInstituteDto) {
+        const create = {
+            school: bodyDto.school,
+            started: bodyDto.started,
+            hasDebt: bodyDto.hasDebt,
+            transfer: {}
+        };
+
         return await this.userModel.findByIdAndUpdate(
-            id,
-            {
-                $push: {
-                    institutes: {
-                        school: newInstitute.school,
-                        started: newInstitute.started,
-                        hasDebt: newInstitute.hasDebt,
-                        transfer: {
-                            date: newInstitute.date,
-                            form: newInstitute.form
-                        }
-                    }
-                }
-            },
+            { _id: userId },
+            { $push: { institutes: create } },
             { new: true }
         );
     }
 
     async updateInstitute(
-        id: string,
+        userId: string,
         instId: string,
-        data: CreateInstituteDto
+        bodyDto: CreateInstituteDto
     ) {
         const query = {
-            _id: id,
+            _id: userId,
             'institutes._id': instId
+        };
+
+        const update = {
+            _id: userId,
+            'institutes.$.school': bodyDto.school,
+            'institutes.$.started': bodyDto.started,
+            'institutes.$.hasDebt': bodyDto.hasDebt
         };
 
         return await this.userModel.findOneAndUpdate(
             query,
-            {
-                $set: {
-                    'institutes.$': {
-                        school: data.school,
-                        started: data.started,
-                        hasDebt: data.hasDebt,
-                        transfer: {
-                            date: data.date,
-                            form: data.form
-                        },
-                        _id: instId
-                    }
-                }
-            },
-            {
-                new: true
-            }
+            { $set: { ...update } },
+            { new: true }
+        );
+    }
+
+    async updateTransfer(
+        userId: string,
+        instId: string,
+        file: Express.Multer.File,
+        bodyDto: UpdateTransferDto
+    ) {
+        const query = {
+            _id: userId,
+            'institutes._id': instId
+        };
+
+        const update = {
+            'institutes.$.transfer.date': bodyDto.date,
+            'institutes.$.transfer.form': file.filename
+        };
+
+        return await this.userModel.findOneAndUpdate(
+            query,
+            { $set: { ...update } },
+            { new: true }
         );
     }
 

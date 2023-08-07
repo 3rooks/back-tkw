@@ -1,6 +1,6 @@
-export const mimeTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'application/pdf'
-];
+export const mimeTypes = {
+    pdf: 'application/pdf',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif'
+};
