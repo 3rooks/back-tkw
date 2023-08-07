@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
     Param,
     Patch,
     Post,
@@ -10,27 +11,21 @@ import {
     Res,
     StreamableFile,
     UploadedFile,
-    UploadedFiles,
     UseInterceptors
 } from '@nestjs/common';
-import {
-    FileFieldsInterceptor,
-    FileInterceptor
-} from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { createReadStream } from 'fs';
 import { diskStorage } from 'multer';
 import path, { extname, parse } from 'path';
 import { Exception } from 'src/config/exception';
+import { localOptions } from 'src/config/multer';
 import { FILES_PATH } from 'src/utils/paths';
 import uuid from 'uuid-random';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import {
-    CertificatesFiles,
-    UpdateCertificatesDto
-} from './dto/update-certificates.dto';
+import { UpdateCertificateDto } from './dto/update-certificates.dto';
 import { UpdateDanGupDto } from './dto/update-dan.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 import { UserService } from './user.service';
@@ -41,14 +36,13 @@ export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Get()
+    @HttpCode(200)
     async findOlder() {
         try {
-            const results = await this.userService.findOlder();
-
             return {
                 statusCode: 200,
-                data: results,
-                message: 'success'
+                data: await this.userService.findOlder(),
+                message: 'USERS data'
             };
         } catch (error) {
             throw Exception.catch(error.message);
@@ -56,14 +50,13 @@ export class UserController {
     }
 
     @Get('all')
+    @HttpCode(200)
     async findAll() {
         try {
-            const results = await this.userService.findAll();
-
             return {
                 statusCode: 200,
-                data: results,
-                message: 'success'
+                data: await this.userService.findAll(),
+                message: 'USERS data'
             };
         } catch (error) {
             throw Exception.catch(error.message);
@@ -71,20 +64,21 @@ export class UserController {
     }
 
     @Get(':userId')
+    @HttpCode(200)
     async findById(@Param('userId') userId: string) {
         try {
-            const exist = await this.userService.findById(userId);
+            const user = await this.userService.findById(userId);
 
-            if (!exist)
+            if (!user)
                 throw new Exception({
                     status: 'NOT_FOUND',
-                    message: 'user not exists'
+                    message: 'USER does not exist'
                 });
 
             return {
                 statusCode: 200,
-                data: exist,
-                message: 'data'
+                data: user,
+                message: 'USER data'
             };
         } catch (error) {
             throw Exception.catch(error.message);
@@ -92,169 +86,147 @@ export class UserController {
     }
 
     @Post()
-    async createUser(@Body() createUserDto: CreateUserDto) {
+    @HttpCode(201)
+    async createUser(@Body() bodyDto: CreateUserDto) {
         try {
-            const exist = await this.userService.findByDni(createUserDto.dni);
-
-            if (exist)
+            if (await this.userService.findByDni(bodyDto.dni))
                 throw new Exception({
                     status: 'CONFLICT',
-                    message: 'person already exist'
+                    message: 'USER already exist'
                 });
-
-            const user = await this.userService.createUser(createUserDto);
 
             return {
                 statusCode: 201,
-                data: user,
-                message: 'created'
+                data: await this.userService.createUser(bodyDto),
+                message: 'USER created'
             };
         } catch (error) {
             throw Exception.catch(error.message);
         }
     }
 
-    @Patch(':userId/dan/:levelId')
+    @Put(':userId/dan/:levelId')
+    @HttpCode(200)
     async updateDanStudies(
         @Param('userId') userId: string,
         @Param('levelId') levelId: string,
-        @Body() updateUserDto: UpdateDanGupDto
+        @Body() bodyDto: UpdateDanGupDto
     ) {
         try {
-            const exist = await this.userService.updateDan(
+            const results = await this.userService.updateDan(
                 userId,
                 levelId,
-                updateUserDto
+                bodyDto
             );
 
-            if (!exist)
+            if (!results)
                 throw new Exception({
                     status: 'NOT_FOUND',
-                    message: 'not gounfd'
+                    message: "DAN's id does not exist"
                 });
 
             return {
                 statusCode: 200,
-                data: exist,
-                message: 'updated'
+                data: results,
+                message: 'DAN updated'
             };
         } catch (error) {
             throw Exception.catch(error.message);
         }
     }
 
-    @Patch(':userId/gup/:levelId')
+    @Put(':userId/gup/:levelId')
+    @HttpCode(200)
     async updateGupStudies(
         @Param('userId') userId: string,
         @Param('levelId') levelId: string,
-        @Body() updateUserDto: UpdateDanGupDto
+        @Body() bodyDto: UpdateDanGupDto
     ) {
         try {
-            const exist = await this.userService.updateDan(
+            const results = await this.userService.updateGup(
                 userId,
                 levelId,
-                updateUserDto
+                bodyDto
             );
 
-            if (!exist)
+            if (!results)
                 throw new Exception({
                     status: 'NOT_FOUND',
-                    message: 'not gofunds'
+                    message: "GUP's id does not exist"
                 });
 
             return {
                 statusCode: 200,
-                data: exist,
-                message: 'updated'
+                data: results,
+                message: 'GUP updated'
             };
         } catch (error) {
             throw Exception.catch(error.message);
         }
     }
 
-    @Put('spec/:userId')
+    @Put(':userId/spec')
+    @HttpCode(200)
     async updateSpecialization(
         @Param('userId') userId: string,
-        @Body() updateSpecializationDto: UpdateSpecializationDto
+        @Body() bodyDto: UpdateSpecializationDto
     ) {
         try {
-            const exist = await this.userService.updateSpecialization(
+            const results = await this.userService.updateSpecialization(
                 userId,
-                updateSpecializationDto
+                bodyDto
             );
 
-            if (!exist)
+            if (!results)
                 throw new Exception({
                     status: 'NOT_FOUND',
-                    message: 'not founds'
+                    message: 'USER does not exist'
                 });
 
             return {
                 statusCode: 200,
-                data: exist,
-                message: 'updated'
+                data: results,
+                message: 'USER updated'
             };
         } catch (error) {
             throw Exception.catch(error.message);
         }
     }
 
-    @Put('spec/cert/:userId')
+    @Put(':userId/cert/:field')
     @ApiConsumes('multipart/form-data')
     @ApiParam({ name: 'userId' })
-    @ApiBody({ type: CertificatesFiles })
-    @UseInterceptors(
-        FileFieldsInterceptor(
-            [
-                { name: 'gal', maxCount: 1 },
-                { name: 'coach', maxCount: 1 },
-                { name: 'referee', maxCount: 1 }
-            ],
-            {
-                dest: FILES_PATH,
-                limits: {
-                    fileSize: 10000000
-                },
-                storage: diskStorage({
-                    destination: FILES_PATH,
-                    filename: (req, file, cb) => {
-                        cb(
-                            null,
-                            `${
-                                parse(file.originalname).name
-                            }-${uuid()}${extname(file.originalname)}`
-                        );
-                    }
-                })
-                // fileFilter: (req, file, cb) => {
-                //     if (!mimeTypes.includes(file.mimetype)) {
-                //         cb(new Error('no mimetyoe valid :|: CONFLICT'), false);
-                //     } else cb(null, true);
-                // }
-            }
-        )
-    )
+    @ApiParam({ name: 'field', enum: ['gal', 'coach', 'referee'] })
+    @ApiBody({ type: UpdateCertificateDto })
+    @UseInterceptors(FileInterceptor('file', localOptions))
     async updateCertificates(
         @Param('userId') userId: string,
-        @UploadedFiles()
-        files: UpdateCertificatesDto
+        @Param('field') field: string,
+        @UploadedFile() file: Express.Multer.File
     ) {
         try {
-            const exist = await this.userService.updateCertificates(
+            if (!file)
+                throw new Exception({
+                    status: 'BAD_REQUEST',
+                    message: 'invalid file/mimetype'
+                });
+
+            const results = await this.userService.updateCertificate(
                 userId,
-                files
+                field,
+                file
             );
 
-            if (!exist)
+            if (!results)
                 throw new Exception({
                     status: 'NOT_FOUND',
-                    message: 'USER NOT FOUND'
+                    message: 'USER not found'
                 });
 
             return {
                 statusCode: 200,
-                data: exist,
-                message: 'updated'
+                data: results,
+                message: 'USER updated'
             };
         } catch (error) {
             throw Exception.catch(error.message);
@@ -278,12 +250,27 @@ export class UserController {
                     );
                 }
             }),
-            limits: { fileSize: 10000000 }
-            // fileFilter: (req, file, cb) => {
-            //     if (!mimeTypes.includes(file.mimetype)) {
-            //         cb(new Error('no mimetyoe valid :|: CONFLICT'), false);
-            //     } else cb(null, true);
-            // }
+            limits: { fileSize: 10000000 },
+            fileFilter: (req, file, cb) => {
+                // Define tus reglas de filtrado personalizadas aquí
+                const allowedMimeTypes = [
+                    'image/jpeg',
+                    'image/png',
+                    'application/pdf'
+                ];
+
+                if (!allowedMimeTypes.includes(file.mimetype)) {
+                    return cb(
+                        new Exception({
+                            status: 'BAD_REQUEST',
+                            message: 'NOT VALID '
+                        }),
+                        false
+                    );
+                }
+
+                cb(null, true);
+            }
         })
     )
     async createInstitute(

@@ -1,30 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
-export class UpdateCertificatesDto {
-    @ApiProperty({ format: 'binary', required: false })
-    @IsOptional()
-    public readonly gal?: Express.Multer.File[];
-
-    @ApiProperty({ format: 'binary', required: false })
-    @IsOptional()
-    public readonly coach?: Express.Multer.File[];
-
-    @ApiProperty({ format: 'binary', required: false })
-    @IsOptional()
-    public readonly referee?: Express.Multer.File[];
-}
-
-export class CertificatesFiles {
-    @ApiProperty({ format: 'binary', required: false })
-    @IsOptional()
-    public readonly gal?: BinaryType;
-
-    @ApiProperty({ format: 'binary', required: false })
-    @IsOptional()
-    public readonly coach?: BinaryType;
-
-    @ApiProperty({ format: 'binary', required: false })
-    @IsOptional()
-    public readonly referee?: BinaryType;
+export class UpdateCertificateDto {
+    @ApiProperty({ format: 'binary', required: true })
+    @IsNotEmpty({ message: 'file should exist' })
+    public readonly file: BinaryType;
 }
