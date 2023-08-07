@@ -5,15 +5,15 @@ import uuid from 'uuid-random';
 
 export type ModeratorDocument = HydratedDocument<Moderator>;
 
-@Schema({ _id: false, timestamps: true, versionKey: false })
+@Schema({ timestamps: true, versionKey: false })
 export class Moderator {
     @Prop({ unique: true, default: () => uuid() })
-    public readonly _id?: string;
+    public readonly _id: string;
 
     @Prop({ unique: true, required: true })
     public readonly email: string;
 
-    @Prop({ type: String, required: true })
+    @Prop({ required: true })
     public readonly password: string;
 
     @Prop({
@@ -23,7 +23,7 @@ export class Moderator {
     })
     public readonly role: ROLES;
 
-    @Prop({ type: Boolean, default: true })
+    @Prop({ default: true })
     public readonly isActive: boolean;
 }
 
