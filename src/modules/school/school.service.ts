@@ -12,11 +12,7 @@ export class SchoolService {
         private readonly moderatorModel: Model<SchoolDocument>
     ) {}
 
-    async create(createSchoolDto: CreateSchoolDto): Promise<SchoolDocument> {
-        return await this.moderatorModel.create(createSchoolDto);
-    }
-
-    async findAll() {
+    async findAll(): Promise<SchoolDocument[]> {
         return await this.moderatorModel.find().exec();
     }
 
@@ -24,18 +20,24 @@ export class SchoolService {
         return await this.moderatorModel.findOne({ name }).exec();
     }
 
-    async update(
-        id: string,
+    async createSchool(
+        createSchoolDto: CreateSchoolDto
+    ): Promise<SchoolDocument> {
+        return await this.moderatorModel.create(createSchoolDto);
+    }
+
+    async updateSchool(
+        schoolId: string,
         updateSchoolDto: UpdateSchoolDto
     ): Promise<SchoolDocument> {
         return await this.moderatorModel
-            .findByIdAndUpdate(id, updateSchoolDto, { new: true })
+            .findByIdAndUpdate(schoolId, updateSchoolDto, { new: true })
             .exec();
     }
 
-    async remove(id: string): Promise<SchoolDocument> {
+    async removeSchool(schoolId: string): Promise<SchoolDocument> {
         return await this.moderatorModel
-            .findByIdAndUpdate(id, { isActive: false }, { new: true })
+            .findByIdAndUpdate(schoolId, { isActive: false }, { new: true })
             .exec();
     }
 }

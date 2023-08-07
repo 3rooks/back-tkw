@@ -9,7 +9,7 @@ import {
     Put,
     UseGuards
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/config/exception';
 import { ROLES } from 'src/constants/roles';
 import { AuthAccess } from 'src/lib/auth/decorators/auth.decorator';
@@ -63,7 +63,9 @@ export class SchoolController {
                     message: 'school already exist'
                 });
 
-            const school = await this.schoolService.create(createSchoolDto);
+            const school = await this.schoolService.createSchool(
+                createSchoolDto
+            );
 
             return {
                 statusCode: 201,
@@ -75,17 +77,21 @@ export class SchoolController {
         }
     }
 
-    @Put(':id')
+    @Put(':schoolId')
     @ApiBearerAuth()
+    @ApiParam({ name: 'schoolId' })
     @AuthAccess(true)
     @RolesAccess(ROLES.SUPER, ROLES.ADMIN)
     @HttpCode(200)
-    async update(
-        @Param('id') id: string,
+    async updateSchool(
+        @Param('schoolId') schoolId: string,
         @Body() updateSchoolDto: UpdateSchoolDto
     ): Promise<IResponse<School>> {
         try {
-            const exist = await this.schoolService.update(id, updateSchoolDto);
+            const exist = await this.schoolService.updateSchool(
+                schoolId,
+                updateSchoolDto
+            );
 
             if (!exist)
                 throw new Exception({
@@ -103,14 +109,17 @@ export class SchoolController {
         }
     }
 
-    @Delete(':id')
+    @Delete(':schoolId')
     @ApiBearerAuth()
+    @ApiParam({ name: 'schoolId' })
     @AuthAccess(true)
     @RolesAccess(ROLES.SUPER, ROLES.ADMIN)
     @HttpCode(200)
-    async remove(@Param('id') id: string): Promise<IResponse<School>> {
+    async removeSchool(
+        @Param('schoolId') schoolId: string
+    ): Promise<IResponse<School>> {
         try {
-            const exist = await this.schoolService.remove(id);
+            const exist = await this.schoolService.removeSchool(schoolId);
 
             if (!exist)
                 throw new Exception({

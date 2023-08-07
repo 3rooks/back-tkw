@@ -4,7 +4,7 @@ import uuid from 'uuid-random';
 
 export type SchoolDocument = HydratedDocument<School>;
 
-@Schema({ _id: false, timestamps: true, versionKey: false })
+@Schema({ timestamps: true, versionKey: false })
 export class School {
     @Prop({ unique: true, default: () => uuid() })
     _id: string;
