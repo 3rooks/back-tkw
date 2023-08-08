@@ -66,7 +66,7 @@ export class UserController {
         return {
             statusCode: 200,
             data: await this.userService.findReferees(),
-            message: 'USERS data'
+            message: 'referees data'
         };
     }
 
