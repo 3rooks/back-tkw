@@ -61,6 +61,15 @@ export class UserController {
         }
     }
 
+    @Get('referees')
+    async findReferees() {
+        return {
+            statusCode: 200,
+            data: await this.userService.findReferees(),
+            message: 'USERS data'
+        };
+    }
+
     @Get('all')
     @ApiBearerAuth()
     @AuthAccess(true)

@@ -15,7 +15,7 @@ export class UpdateSpecializationDto {
     @ApiProperty({ example: true })
     @IsBoolean({ message: 'is refeere must be an boolean' })
     @IsNotEmpty({ message: 'is refeere should exist' })
-    public readonly isRefeere: boolean;
+    public readonly isReferee: boolean;
 
     @ApiProperty({ example: true })
     @IsBoolean({ message: 'is coach must be an boolean' })

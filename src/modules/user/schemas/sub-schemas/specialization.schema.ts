@@ -23,7 +23,7 @@ export class Specialization {
     public readonly isTeacher: boolean;
 
     @Prop({ default: false })
-    public readonly isRefeere: boolean;
+    public readonly isReferee: boolean;
 
     @Prop({ default: false })
     public readonly isCoach: boolean;

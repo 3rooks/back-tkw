@@ -26,6 +26,18 @@ export class UserService {
             .exec();
     }
 
+    async findReferees() {
+        const adultAgeLimit = new Date();
+        adultAgeLimit.setFullYear(adultAgeLimit.getFullYear() - 18);
+
+        const filter = {
+            'specialization.isReferee': true,
+            birth: { $lte: adultAgeLimit }
+        };
+
+        return await this.userModel.find(filter).exec();
+    }
+
     async findAll(): Promise<UserDocument[]> {
         return await this.userModel.find().exec();
     }
@@ -123,7 +135,7 @@ export class UserService {
         const update = {
             'specialization.isStudent': bodyDto.isStudent,
             'specialization.isTeacher': bodyDto.isTeacher,
-            'specialization.isRefeere': bodyDto.isRefeere,
+            'specialization.isReferee': bodyDto.isReferee,
             'specialization.isCoach': bodyDto.isCoach
         };
 
